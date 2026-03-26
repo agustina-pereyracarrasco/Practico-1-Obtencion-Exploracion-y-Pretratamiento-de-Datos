@@ -1,30 +1,33 @@
-from os import error
+#----- Uso de biblioteca pandas -----
 import pandas as pd
-import matplotlib.pyplot as plt
-from pandas.core.internals.managers import create_block_manager_from_column_arrays  
-
-#-----------Carga de datos-----------#
+#----- 1) Carga de datos -----
 
 df = pd.read_csv("Tema_17.csv")
 
+#-------------- ANÁLISIS EXPLORATORIO --------------
+# ----- a) Calcular y mostrar la cantidad de filas y columnas -----
 
+cantFilas, cantColumnas = df.shape
+print(f"Cantidad de filas: {cantFilas}, Cantidad de columnas: {cantColumnas}")
 
-#-----------Cantidad de filas y columnas-----------#
+#----- b) Observar y mostrar las primeras 5 filas -----
 
-print(df.shape)
+print(f"Primeras 5 filas: {df.head()}")
 
+#----- c) Evaluar la existencia de datos faltantes y duplicados. Cuantificarlos y calcular el porcentaje sobre el total de filas.-----
 
+#Datos faltantes
+faltantes= df.isnull().sum().sum()
+print(f"Cantidad de datos faltantes: {faltantes}")
+cantidadCeldas= df.shape[0]*df.shape[1]
+print(f"Porcentaje de datos faltantes sobre el total: {round((faltantes/cantidadCeldas)*100,2)}%")
 
-#-----------Imprimir primeras 5 filas-----------#
+#Datos duplicados
+duplicados = df.duplicated().sum()
+print(f"Cantidad de datos duplicados sobre el total: {duplicados}")
+print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFilas)*100,2)}%")
 
-print(df.head()) 
-
-
-
-#-----------Analisis exploratorio-----------#
-
-
-print(df.dtypes)
-
-df["CO(GT)"] = pd.to_numeric(["CO(GT)"], errors='coerce') #Cambiar valores str a numericos
-df["CO(GT)"] = df["CO(GT)"].replace(-200, pd.NA) #Identificar valores faltantes
+#----- d) Para los datos faltantes, evaluar posibles motivos de esto en cada caso.-----
+#----- Para variables discretas, evaluar los posibles valores de cada variable (valores únicos).-----
+#----- Cuantificar los valores únicos del punto e) y realizar histogramas.-----
+#----- Evaluar la existencia de datos inconsistentes ------
