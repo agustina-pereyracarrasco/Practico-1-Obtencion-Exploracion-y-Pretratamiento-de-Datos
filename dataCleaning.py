@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 df = pd.read_csv("Tema_17.csv")
 
+
 #-------------- ANÁLISIS EXPLORATORIO --------------
 # ----- a) Calcular y mostrar la cantidad de filas y columnas -----
 
@@ -23,8 +24,13 @@ print(f"Primeras 5 filas: {df.head()}")
 
 #Datos faltantes
 
+#df['PT08.S1(CO)'] = df['PT08.S1(CO)'].astype('float')
+df[['Date','Time','CO(GT)','PT08.S1(CO)','NMHC(GT)','C6H6(GT)','PT08.S2(NMHC)','NOx(GT)','PT08.S3(NOx)','NO2(GT)','PT08.S4(NO2)','PT08.S5(O3)','T','RH','AH']]= df[['Date','Time','CO(GT)','PT08.S1(CO)','NMHC(GT)','C6H6(GT)','PT08.S2(NMHC)','NOx(GT)','PT08.S3(NOx)','NO2(GT)','PT08.S4(NO2)','PT08.S5(O3)','T','RH','AH']].apply(pd.to_numeric, errors='coerce')
+
+print(df.dtypes)
 
 df = df.replace(-200, pd.NA) #identificar todos los valores faltantes
+#pd.to_numeric(df['columna'], errors='coerce')
 
 faltantes = df.isnull().sum().sum()
 print(f"Cantidad de datos faltantes: {faltantes}")
@@ -37,29 +43,13 @@ print(f"Cantidad de datos duplicados sobre el total: {duplicados}")
 print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFilas)*100,2)}%")
 
 #----- d) Para los datos faltantes, evaluar posibles motivos de esto en cada caso.-----
+#Teórico
 
-df["Datetime"] = pd.to_datetime(
-    df["Date"] + " " + df["Time"],
-    format="%d/%m/%Y %H.%M.%S",
-    errors="coerce"
-)
-
-df = df.dropna(subset=["Datetime"])
-df = df.set_index("Datetime").sort_index()
 
 #----- Para variables discretas, evaluar los posibles valores de cada variable (valores únicos).-----
+#Teórico
 
-valores_unicos = df.index.unique()
-print(valores_unicos)
 
-df = df.reset_index()
-df["CO(GT)"].hist(bins=30)
-
-plt.title("Distribución de CO(GT)")
-plt.xlabel("CO(GT)")
-plt.ylabel("Frecuencia")
-
-plt.show()
 
 #----- Cuantificar los valores únicos del punto e) y realizar histogramas.-----
 #----- Evaluar la existencia de datos inconsistentes ------
