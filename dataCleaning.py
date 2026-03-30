@@ -1,4 +1,5 @@
 #----- Uso de biblioteca pandas -----
+from numpy import dtype
 import pandas as pd
 import matplotlib
 matplotlib.use("TkAgg")  # o Qt5Agg
@@ -24,20 +25,18 @@ print(f"Primeras 5 filas: {df.head()}")
 
 #Datos faltantes
 
-#df['PT08.S1(CO)'] = df['PT08.S1(CO)'].astype('float')
-df[['Date','Time','CO(GT)','PT08.S1(CO)','NMHC(GT)','C6H6(GT)','PT08.S2(NMHC)','NOx(GT)','PT08.S3(NOx)','NO2(GT)','PT08.S4(NO2)','PT08.S5(O3)','T','RH','AH']]= df[['Date','Time','CO(GT)','PT08.S1(CO)','NMHC(GT)','C6H6(GT)','PT08.S2(NMHC)','NOx(GT)','PT08.S3(NOx)','NO2(GT)','PT08.S4(NO2)','PT08.S5(O3)','T','RH','AH']].apply(pd.to_numeric, errors='coerce')
-
-print(df.dtypes)
 
 df = df.replace(-200, pd.NA) #identificar todos los valores faltantes
-#pd.to_numeric(df['columna'], errors='coerce')
 
+#print(df.dtypes)
+
+#Calculo de datos faltantes
 faltantes = df.isnull().sum().sum()
 print(f"Cantidad de datos faltantes: {faltantes}")
 cantidadCeldas= df.shape[0]*df.shape[1]
 print(f"Porcentaje de datos faltantes sobre el total: {round((faltantes/cantidadCeldas)*100,2)}%")
 
-#Datos duplicados
+#Calculo de datos duplicados
 duplicados = df.duplicated().sum()
 print(f"Cantidad de datos duplicados sobre el total: {duplicados}")
 print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFilas)*100,2)}%")
@@ -52,6 +51,52 @@ print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFi
 
 
 #----- Cuantificar los valores únicos del punto e) y realizar histogramas.-----
+df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors="coerce")
+df['Time'] = pd.to_datetime(df['Time'], format="%H.%M.%S", errors="coerce").dt.time
+
+
+
+print(df.dtypes)
+
+
+
+print(df.head(100))
+print(df['Date'].nunique())
+print(df["Time"].nunique())
+
+print(df.dtypes)
+
+
+df["Time_num"] = df["Time"].apply(lambda x: x.hour if pd.notna(x) else None)
+
+df["Time_num"].value_counts().sort_index().plot(kind="bar")
+
+plt.xlabel("Hora")
+plt.ylabel("Frecuencia")
+plt.title("Cantidad de registros por hora")
+plt.xticks(rotation=45)
+plt.show()
+
+
+#df["CO(GT)"] = pd.to_numeric(df["CO(GT)"], errors="coerce")
+#df.groupby("Time_num")["CO(GT)"].mean().plot()
+
+#plt.xlabel("Hora")
+#plt.ylabel("Promedio de CO")
+#plt.title("Valores de CO promedio por hora")
+
+#plt.show()
+
+
+
+#df.groupby("Time_num")["NMHC(GT)"].mean().plot()
+
+#lt.xlabel("Hora")
+#plt.ylabel("Promedio de NMHC")
+#plt.title("Valores de NMHC promedio por hora")
+
+#plt.show()
+
 #----- Evaluar la existencia de datos inconsistentes ------
 
 
