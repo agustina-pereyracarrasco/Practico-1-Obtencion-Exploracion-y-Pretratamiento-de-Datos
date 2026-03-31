@@ -2,6 +2,7 @@
 from numpy import dtype
 import pandas as pd
 import matplotlib
+import numpy as np
 matplotlib.use("TkAgg")  # o Qt5Agg
 
 import matplotlib.pyplot as plt
@@ -25,7 +26,8 @@ print(f"Primeras 5 filas: {df.head()}")
 
 #Datos faltantes
 
-
+cols = ["CO(GT)", "NMHC(GT)", "C6H6(GT)", "NOx(GT)", "NO2(GT)", "PT08.S5(O3)"]
+df[cols] = df[cols].apply(pd.to_numeric, errors="coerce")
 df = df.replace(-200, pd.NA) #identificar todos los valores faltantes
 
 #print(df.dtypes)
@@ -51,6 +53,7 @@ print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFi
 
 
 #----- Cuantificar los valores únicos del punto e) y realizar histogramas.-----
+
 df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors="coerce")
 df['Time'] = pd.to_datetime(df['Time'], format="%H.%M.%S", errors="coerce").dt.time
 
@@ -78,25 +81,64 @@ plt.xticks(rotation=45)
 plt.show()
 
 
-#df["CO(GT)"] = pd.to_numeric(df["CO(GT)"], errors="coerce")
-#df.groupby("Time_num")["CO(GT)"].mean().plot()
-
-#plt.xlabel("Hora")
-#plt.ylabel("Promedio de CO")
-#plt.title("Valores de CO promedio por hora")
-
-#plt.show()
+#-----Check inconsistencia en los datos
+print("INICIO CHECK INCONSISTENCIA")
 
 
+#Temperatura
 
-#df.groupby("Time_num")["NMHC(GT)"].mean().plot()
+temperaturas_inconsistentes = (df["T"] < -50) | (df["T"] > 60) #rangos imposibles
+print("Cantidad de filas con temperaturas no relevantes: ", temperaturas_inconsistentes.sum())
+df.loc[temperaturas_inconsistentes, "T"] = np.nan #reemplazar inconsistencias por NaN para tratar mas tarde
+#print("NaN en T:", df["T"].isna().sum()) #check Nan
 
-#lt.xlabel("Hora")
-#plt.ylabel("Promedio de NMHC")
-#plt.title("Valores de NMHC promedio por hora")
 
-#plt.show()
+#Humedad
 
-#----- Evaluar la existencia de datos inconsistentes ------
+rh_inconsistente = (df["RH"] < 0) | (df["RH"] > 100)
+print("Filas con inconsistencias RH: ", rh_inconsistente.sum())
+
+ah_inconsistente = df["AH"] < 0
+print("Filas con inconsistencias AH: ", ah_inconsistente.sum())
+
+
+#Gases
+
+cols = ["CO(GT)", "NMHC(GT)", "C6H6(GT)", "NOx(GT)", "NO2(GT)", "PT08.S5(O3)"]
+
+df[cols] = df[cols].apply(pd.to_numeric, errors="coerce")
+
+
+for col in cols:
+    print(col, (df[col] < 0).sum()) #Valores negativos
+    print(df[col].describe()) #muestra estadisticas generales de cada columna (cantidad de filas, min, max, promedio..)
+    
+
+
+df[cols].isna().sum() #Valores faltantes
+
+conteo = (df['PT08.S5(O3)'] > 1374).sum()
+print("Valores limites de ozono: ", conteo)
+correctos = df['PT08.S5(O3)'].count()
+print("Valores no nulos de ozono: ",correctos)
+ 
+df[cols].apply(pd.to_numeric, errors="coerce").hist(bins=30)
+plt.show()
+
+df.boxplot(column=cols)
+plt.xticks(rotation=45)
+plt.show()
+
+df.groupby("Time_num")["CO(GT)"].mean().plot(kind="bar")
+
+plt.xlabel("Hora del día")
+plt.ylabel("CO promedio")
+plt.title("Concentración promedio de CO por hora")
+
+plt.xticks(rotation=0)  # opcional
+plt.show()
+
+
+
 
 
