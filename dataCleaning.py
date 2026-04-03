@@ -25,25 +25,44 @@ def analisis_exploratorio(df):
 
     #----- c) Evaluar la existencia de datos faltantes y duplicados. Cuantificarlos y calcular el porcentaje sobre el total de filas.-----
 
-    #Datos faltantes
+    #Datos faltantes 
 
     cols = ["CO(GT)", "NMHC(GT)", "C6H6(GT)", "NOx(GT)", "NO2(GT)", "PT08.S5(O3)"]
     df[cols] = df[cols].apply(pd.to_numeric, errors="coerce")
     df = df.replace("invalid_value", -200)
     df = df.replace(-200, pd.NA) #identificar todos los valores faltantes
 
-    #Calculo de datos faltantes
-    faltantes = df.isnull().sum().sum()
+    #Calculo de datos faltantes 
+    faltantes = df.isnull().sum().sum() # suma de todos los datos faltantes por columna
     print(f"Cantidad de datos faltantes: {faltantes}")
-    cantidadCeldas= df.shape[0]*df.shape[1]
+    cantidadCeldas= df.shape[0]*df.shape[1] # calculo de cantidad total de celdas
+
     print(f"Porcentaje de datos faltantes sobre el total: {round((faltantes/cantidadCeldas)*100,2)}%")
 
+     # Calculo de datos faltantes por columna
+    for col in df.columns:
+        faltantes_col = df[col].isnull().sum()
+
+        # porcentaje dentro de la columna
+        porcentaje_col = (faltantes_col / len(df)) * 100
+
+        # porcentaje respecto a TODO el dataset
+        porcentaje_total = (faltantes_col / cantidadCeldas) * 100
+
+        print(
+            f"Columna: {col} | Faltantes: {faltantes_col} | "
+            f"% Columna: {porcentaje_col:.2f}% | % Total dataset: {porcentaje_total:.2f}%"
+        )
+
+
     #Calculo de datos duplicados
-    duplicados = df.duplicated().sum()
+    duplicados = df.duplicated().sum() # suma de todas las filas duplicadas
     print(f"Cantidad de datos duplicados sobre el total: {duplicados}")
     print(f"Porcentaje de datos duplicados sobre el total: {round((duplicados/cantFilas)*100,2)}%") 
 
     #----- Cuantificar los valores únicos del punto e) y realizar histogramas.-----#
+
+    #Gráfica
 
     df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors="coerce")
     df['Time'] = pd.to_datetime(df['Time'], format="%H.%M.%S", errors="coerce").dt.time
@@ -65,12 +84,57 @@ def analisis_exploratorio(df):
 
     plt.show()
 
+    #Histograma
+
+    # Date
+    df["Date"] = pd.to_datetime(df["Date"], format="%d/%m/%Y", errors="coerce")
+
+    # Time corregido: normaliza 18.00.00 -> 18:00:00 y luego convierte a datetime
+    df["Time"] = pd.to_datetime(
+        df["Time"].astype(str).str.replace(".", ":", regex=False),
+        format="%H:%M:%S",
+        errors="coerce"
+    )
+
+    print(df.dtypes)
+
+    print(df.head(100))
+    print(df["Date"].nunique())
+    print(df["Time"].nunique())
+
+    print(df.dtypes)
+
+    # nueva columna con las horas representadas de 0 a 23
+    df["Time_num"] = df["Time"].dt.hour
+
+    # Histograma de mediciones por hora
+    df["Time_num"].hist(bins=24)
+
+    plt.xlabel("Hora del día (0–23)")
+    plt.ylabel("Frecuencia")
+    plt.title("Histograma de mediciones por hora")
+    plt.xticks(range(24))
+    plt.grid(axis="y")
+
+    plt.show()
 
 
     #-----Check inconsistencia en los datos
     print("INICIO CHECK INCONSISTENCIA")
 
+    # Date
+    date_inconsistente = df["Date"].isna()  # Fechas inválidas o faltantes
+    print("Filas con fechas inválidas o faltantes: ", date_inconsistente.sum())
 
+    date_fuera_rango = (df["Date"] < "2004-03-10") | (df["Date"] > "2005-04-04")  # Fechas fuera de rango esperado
+    print("Filas con fechas fuera de rango: ", date_fuera_rango.sum())
+
+    # Time
+    time_inconsistente = df["Time"].isna()  # Horas inválidas o faltantes
+    print("Filas con horas inválidas o faltantes: ", time_inconsistente.sum())
+
+    time_fuera_rango = (df["Time_num"] < 0) | (df["Time_num"] > 23)  # Horas fuera de rango
+    print("Filas con horas fuera de rango: ", time_fuera_rango.sum())
 
     #Temperatura
 
